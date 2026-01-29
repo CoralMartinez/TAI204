@@ -1,5 +1,6 @@
 #importaciones
 
+from fastapi import FastAPI 
 
 #librería: fastapi, clase: FastAPI
 
