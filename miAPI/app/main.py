@@ -1,6 +1,6 @@
 #importaciones
 
-from fastapi import FastAPI 
+from fastapi import FastAPI, status, HTTPException
 
 #librería: fastapi, clase: FastAPI
 
@@ -25,8 +25,6 @@ usuarios = [
     {"id":3, "nombre":"Saúl", "edad":21},
     {"id":4, "nombre":"María", "edad":21}
 ]
-
-
 
 
 #Endpoints
@@ -73,7 +71,7 @@ async def Hola():
         "status":"200"
     }
     
-@app.get("/v1/usuario/{id}", tags = ["Parametro obligatorio"])
+@app.get("/v1/ParametroOb/{id}", tags = ["Parametro obligatorio"])
 async def consultauno(id:int):
     
     return {
@@ -83,7 +81,7 @@ async def consultauno(id:int):
     }
 
 
-@app.get("/v1/usuarios/", tags = ["Parametro opcional"])
+@app.get("/v1/ParametroOp/", tags = ["Parametro opcional"])
 async def consultatodos(id:Optional[int] = None):
     if id is not None:
         for usuarioK in usuarios:
@@ -106,10 +104,40 @@ async def consultatodos(id:Optional[int] = None):
             "mensaje":"No se roporcionó un id"
         }
 
-
-
-
-
-
-
-
+@app.get("/v1/usuarios/", tags=["CRUD HTTP"])
+async  def consultaT():
+    return{
+        "status":"200",
+        "total": len(usuarios),
+        "Usuarios":usuarios
+    }
+    
+    
+@app.post("/v1/usuarios/", tags=["CRUD HTTP"])
+async def agregar_usuario(usuario:dict): #diccionario de la BD ficticia
+    for usr in usuarios:
+        if usr["id"] == usuario.get("id"): #si es igual que lo que se está pidiendo
+            raise HTTPException(
+                status_code = 400, #Error de lado del Cliente
+                detail = "El id ya existe"
+            )
+            
+    usuarios.append(usuario)
+    return{
+        "Mensaje":"Usario agregado", 
+        "Usuario":usuario,
+        "Status":"200"
+    }
+    
+        
+        
+        
+        
+        
+    
+   
+   
+   
+   
+   
+   
