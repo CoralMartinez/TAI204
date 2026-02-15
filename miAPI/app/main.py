@@ -129,6 +129,42 @@ async def agregar_usuario(usuario:dict): #diccionario de la BD ficticia
         "Status":"200"
     }
     
+    
+@app.put("/v1/usuarios/{id}", tags=["CRUD HTTP"])
+async def actualizar_usuario(id: int, usuario: dict):
+    for usr in usuarios:
+        if usr["id"] == id:
+            usr.update(usuario)
+            
+            return{
+                "Mensaje":"Usuario actualizado", 
+                "Usuario":usr,
+                "Status":"200"
+            }
+            
+    raise HTTPException(
+        status_code = 400,
+        detail = "Usuario no encontrado"
+    )
+  
+  
+@app.delete("/v1/usurios/{id}", tags=["CRUD HTTP"])
+async def eliminar_usuario(id: int):
+    for usr in usuarios:
+        if usr["id"] == id:
+            usuarios.remove(usr)
+            return{
+                "Mensaje":"Usuario eliminado",
+                "Usuario":usr,
+                "Status":"200"
+            }
+    raise HTTPException(
+        status_code = 400,
+        detail = "Usuario no encontrado"
+    )
+            
+    
+    
         
         
         
