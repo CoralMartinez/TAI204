@@ -8,6 +8,8 @@ import asyncio
 
 from typing import Optional
 
+from pydantic import BaseModel
+
 
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -42,6 +44,15 @@ usuarios = [
     {"id":3, "nombre":"Saúl", "edad":21},
     {"id":4, "nombre":"María", "edad":21}
 ]
+
+#-------------------------------------------------------------------------------------------
+#Modelo Pydantic de validacion
+#-------------------------------------------------------------------------------------------
+
+class crear_usuario(BaseModel):
+    id:int
+    nombre:str
+    edad:int
 
 
 #Endpoints
@@ -131,7 +142,7 @@ async  def consultaT():
     
     
 @app.post("/v1/usuarios/", tags=["CRUD HTTP"])
-async def agregar_usuario(usuario:dict): #diccionario de la BD ficticia
+async def agregar_usuario(usuario:crear_usuario): 
     for usr in usuarios:
         if usr["id"] == usuario.get("id"): #si es igual que lo que se está pidiendo
             raise HTTPException(
@@ -185,6 +196,9 @@ async def eliminar_usuario(id: int):
     # LEVANTAR SERVIDOR fastAPI
     # C:\TAI204>
     # #uvicorn miAPI.main:app --reload --port 5000
+    
+    #SI SE BORRA EL CONTENEDOR EN DOCKER
+    #docker compose up --build
         
         
         
