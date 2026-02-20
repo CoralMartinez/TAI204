@@ -9,6 +9,8 @@ import asyncio
 from typing import Optional
 
 
+from fastapi.middleware.cors import CORSMiddleware
+
 #Instancia del servidor
 
 app =  FastAPI(
@@ -16,6 +18,21 @@ app =  FastAPI(
     description = "Coral Martínez Silvestre" ,
     version = "1.0"
 )
+
+#CORS
+# BACKEND Y FRONTEND FUNCIONAN 
+# EVITAR BLOQUEO DE PETICIONES
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+
 
 #TABLA FICTICIA
 
@@ -148,7 +165,7 @@ async def actualizar_usuario(id: int, usuario: dict):
     )
   
   
-@app.delete("/v1/usurios/{id}", tags=["CRUD HTTP"])
+@app.delete("/v1/usuarios/{id}", tags=["CRUD HTTP"])
 async def eliminar_usuario(id: int):
     for usr in usuarios:
         if usr["id"] == id:
@@ -164,7 +181,10 @@ async def eliminar_usuario(id: int):
     )
             
     
-    
+    #BACKEND
+    # LEVANTAR SERVIDOR fastAPI
+    # C:\TAI204>
+    # #uvicorn miAPI.main:app --reload --port 5000
         
         
         
