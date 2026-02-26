@@ -54,7 +54,6 @@ class crear_usuario(BaseModel):
     nombre:str = Field(...,min_length=3, max_length=50, example="Patroclo")
     edad:int = Field(...,ge=1, le=125, description="Edad valida de 1 a 125")
 
-
 #Endpoints
 
 #--->Rutas
