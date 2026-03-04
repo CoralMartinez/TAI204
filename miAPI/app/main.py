@@ -1,6 +1,6 @@
 #importaciones
 
-from fastapi import FastAPI, status, HTTPException
+from fastapi import FastAPI, status, HTTPException, Depends #Depends: Configuración de proteccción
 
 #librería: fastapi, clase: FastAPI
 
@@ -12,6 +12,11 @@ from pydantic import BaseModel, Field
 
 
 from fastapi.middleware.cors import CORSMiddleware
+
+
+from fastapi.security import HTTPBasic, HTTPBasicCredentials #Seguridad básica HTTP para autenticación de usuarios
+
+import secrets #manipulación de contraseñas
 
 #Instancia del servidor
 
@@ -53,6 +58,28 @@ class crear_usuario(BaseModel):
     id:int = Field(...,gt=0, description="identificador  de usuario")
     nombre:str = Field(...,min_length=3, max_length=50, example="Patroclo")
     edad:int = Field(...,ge=1, le=125, description="Edad valida de 1 a 125")
+
+
+#-------------------------------------------------------------------------------------------
+#Seguridad con HTTPBasic
+#-------------------------------------------------------------------------------------------
+
+security = HTTPBasic()
+
+def verificar_peticion(credenciales: HTTPBasicCredentials = Depends(security)): #Parámetros --> credenciales
+    
+    usuarioAut = secrets.compare_digest(credenciales.username, "coral")
+    contraAuth = secrets.compare_digest(credenciales.password, "123456")
+    
+    if not(usuarioAut and contraAuth):
+        raise HTTPException(
+            status_code = status.HTTP_401_UNAUTHORIZED,
+            detail = "Credenciales no autorizadas"
+        )
+    
+    return credenciales.username
+        
+
 
 #Endpoints
 
@@ -176,18 +203,19 @@ async def actualizar_usuario(id: int, usuario: dict):
   
   
 @app.delete("/v1/usuarios/{id}", tags=["CRUD HTTP"])
-async def eliminar_usuario(id: int):
+async def eliminar_usuario(id: int, usuarioAuth:str=Depends(verificar_peticion)):
     for usr in usuarios:
         if usr["id"] == id:
             usuarios.remove(usr)
             return{
-                "Mensaje":"Usuario eliminado",
+                "Mensaje": f"Usuario eliminado por {usuarioAuth}",
                 "Usuario":usr,
                 "Status":"200"
             }
     raise HTTPException(
         status_code = 400,
         detail = "Usuario no encontrado"
+    
     )
             
     
