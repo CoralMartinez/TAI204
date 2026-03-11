@@ -1,0 +1,10 @@
+#API de Sistema para gestionar lo turnos bancarios que permite: 10: API para gestionar los turnos bancarios que permite:"
+#CREAR turno, listar turnos, consultar por ID, marcar como atendido, eliminar turno. 11. MODELO DE DATOS OBLIGATORIOS
+#cliente: mínimo 8 caracteres, tipo tramite: depósito, retiro o consulta, fecha de turno futura entre: 09:00 a.m. y 03:00 p.m.
+#no permitir más de 5 turnos por día a 1 cliente.
+
+#12. RUTAS PROTEGIDAS CON USUARIO: banco y contraseña: 2468
+#Marcar como atendido y eliminar turno
+
+#Preparar y probar todos los endopoints en Postman para su rápida revisión, no es válido entregar en cualquier otra herramienta
+
