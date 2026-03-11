@@ -13,13 +13,10 @@ from pydantic import BaseModel, Field
 
 from fastapi.middleware.cors import CORSMiddleware
 
-#Librerías OAuth2 para autorización
 
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi.security import HTTPBasic, HTTPBasicCredentials #Seguridad básica HTTP para autenticación de usuarios
 
-#Librería para JWT
-from jose import JWTError, jwt
-from datetime import datetime, timedelta
+import secrets #manipulación de contraseñas
 
 #Instancia del servidor
 
@@ -53,75 +50,6 @@ usuarios = [
     {"id":4, "nombre":"María", "edad":21}
 ]
 
-
-#-------------------------------------------------------------------------------------------
-#Configuración de OAuth2 y JWT
-#-------------------------------------------------------------------------------------------
-
-
-SECRET_KEY = "clave_secreta"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
-
-
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-
-#CREAR TOKEN
-
-def crear_token(data: dict):
-
-    datos = data.copy()
-
-    expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-
-    datos.update({"exp": expire})
-
-    token = jwt.encode(datos, SECRET_KEY, algorithm=ALGORITHM)
-
-    return token
-
-#ENDPOINT LOGIN 
-
-@app.post("/token", tags=["Autenticación"])
-async def login(form_data: OAuth2PasswordRequestForm = Depends()):
-
-    username = form_data.username
-    password = form_data.password
-
-    if username != "coral" or password != "123456":
-        raise HTTPException(
-            status_code=401,
-            detail="Credenciales incorrectas"
-        )
-
-    access_token = crear_token({"sub": username})
-
-    return {
-        "access_token": access_token,
-        "token_type": "bearer"
-    }
-
-#VALIDAR TOKEN
-
-def verificar_token(token: str = Depends(oauth2_scheme)):
-
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-
-        usuario = payload.get("sub")
-
-        if usuario is None:
-            raise HTTPException(status_code=401, detail="Token inválido")
-
-        return usuario
-
-    except JWTError:
-        raise HTTPException(
-            status_code=401,
-            detail="Token inválido o expirado"
-        )
-
-
 #-------------------------------------------------------------------------------------------
 #Modelo Pydantic de validacion
 #-------------------------------------------------------------------------------------------
@@ -131,7 +59,26 @@ class crear_usuario(BaseModel):
     nombre:str = Field(...,min_length=3, max_length=50, example="Patroclo")
     edad:int = Field(...,ge=1, le=125, description="Edad valida de 1 a 125")
 
+
+#-------------------------------------------------------------------------------------------
+#Seguridad con HTTPBasic
+#-------------------------------------------------------------------------------------------
+
+security = HTTPBasic()
+
+def verificar_peticion(credenciales: HTTPBasicCredentials = Depends(security)): #Parámetros --> credenciales
     
+    usuarioAut = secrets.compare_digest(credenciales.username, "coral")
+    contraAuth = secrets.compare_digest(credenciales.password, "123456")
+    
+    if not(usuarioAut and contraAuth):
+        raise HTTPException(
+            status_code = status.HTTP_401_UNAUTHORIZED,
+            detail = "Credenciales no autorizadas"
+        )
+    
+    return credenciales.username
+        
 
 
 #Endpoints
@@ -223,7 +170,7 @@ async  def consultaT():
 @app.post("/v1/usuarios/", tags=["CRUD HTTP"])
 async def agregar_usuario(usuario:crear_usuario): 
     for usr in usuarios:
-        if usr["id"] == usuario.id: 
+        if usr["id"] == usuario.get("id"): #si es igual que lo que se está pidiendo
             raise HTTPException(
                 status_code = 400, #Error de lado del Cliente
                 detail = "El id ya existe"
@@ -237,49 +184,38 @@ async def agregar_usuario(usuario:crear_usuario):
     }
     
     
-    
 @app.put("/v1/usuarios/{id}", tags=["CRUD HTTP"])
-async def actualizar_usuario(
-    id: int,
-    usuario: dict,
-    usuarioAuth: str = Depends(verificar_token)
-):
-
+async def actualizar_usuario(id: int, usuario: dict):
     for usr in usuarios:
         if usr["id"] == id:
             usr.update(usuario)
-
-            return {
-                "Mensaje": f"Usuario actualizado por {usuarioAuth}",
-                "Usuario": usr,
-                "Status": "200"
+            
+            return{
+                "Mensaje":"Usuario actualizado", 
+                "Usuario":usr,
+                "Status":"200"
             }
-
+            
     raise HTTPException(
-        status_code=400,
-        detail="Usuario no encontrado"
+        status_code = 400,
+        detail = "Usuario no encontrado"
     )
   
   
 @app.delete("/v1/usuarios/{id}", tags=["CRUD HTTP"])
-async def eliminar_usuario(
-    id: int,
-    usuarioAuth: str = Depends(verificar_token)
-):
-
+async def eliminar_usuario(id: int, usuarioAuth:str=Depends(verificar_peticion)):
     for usr in usuarios:
         if usr["id"] == id:
             usuarios.remove(usr)
-
-            return {
+            return{
                 "Mensaje": f"Usuario eliminado por {usuarioAuth}",
-                "Usuario": usr,
-                "Status": "200"
+                "Usuario":usr,
+                "Status":"200"
             }
-
     raise HTTPException(
-        status_code=400,
-        detail="Usuario no encontrado"
+        status_code = 400,
+        detail = "Usuario no encontrado"
+    
     )
             
     
