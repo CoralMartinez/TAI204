@@ -18,7 +18,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 
 #Librería para JWT
 from jose import JWTError, jwt
-from datetime import datetime, timedelta
+from datetime import datetime, time, timedelta
 
 #Instancia del servidor
 
@@ -57,11 +57,10 @@ app.add_middleware(
 #TABLA FICTICIA
 
 usuarios = [
-    {"id":1, "nombre":"Sofía", "tipo":21, "fecha":"2026-03-12"},
-    {"id":2, "nombre":"Federico", "tipo":21, "fecha":"2026-03-12"},
-    
+    {"id":1, "cliente":"Sofía", "tipo":"deposito", "estatus":"atendido","fecha":"2026-03-10", "hora":"09:00", "cuenta_turno":4},
+    {"id":2, "cliente":"Jacob", "tipo":"consulta", "estatus":"por atender", "fecha":"2026-03-11", "hora":"10:00", "cuenta_turno":2},
+    {"id":3, "cliente":"Marceline", "tipo":"retiro", "estatus":"atendido", "fecha":"2026-03-08", "hora":"14:50", "cuenta_turno":5},
 ]
-
 
 #-------------------------------------------------------------------------------------------
 #Configuración de OAuth2 y JWT
@@ -89,7 +88,7 @@ def crear_token(data: dict):
 
     return token
 
-#ENDPOINT LOGIN 
+#ENDPOINT inicio de sesión
 
 @app.post("/token", tags=["Autenticación"])
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
@@ -97,7 +96,7 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     username = form_data.username
     password = form_data.password
 
-    if username != "coral" or password != "123456":
+    if username != "banco" or password != "2468":
         raise HTTPException(
             status_code=401,
             detail="Credenciales incorrectas"
@@ -135,10 +134,13 @@ def verificar_token(token: str = Depends(oauth2_scheme)):
 #Modelo Pydantic de validacion
 #-------------------------------------------------------------------------------------------
 
-class crear_usuario(BaseModel):
-    id:int = Field(...,gt=0, description="identificador  de usuario")
-    nombre:str = Field(...,min_length=3, max_length=50, example="Patroclo")
-    edad:int = Field(...,ge=1, le=125, description="Edad valida de 1 a 125")
+class crear_turno(BaseModel):
+    id:int = Field(..., gt=0, description="id del turno")
+    cliente:str = Field(..., min_lenght=3, max_length=8, example="Socorro")
+    tipo:str = Field(..., min_lenght=6, max_length=8, example="deposito")
+    estatus:str = Field(..., gt=0, min_lenght=3, max_lenght=12, example="atendido")
+    fecha_hora:datetime = Field (..., gt=0, desciption="2026-03-10T09:30")                 
+    cuenta_turno:int = Field(..., gt=0, description = "conteo de turnos por días")
 
 #Endpoints
 
@@ -159,7 +161,7 @@ async  def consultaT():
     
     
 @app.post("/v1/usuarios/", tags=["CRUD HTTP"])
-async def agregar_usuario(usuario:crear_usuario): 
+async def agregar_usuario(usuario:crear_turno): 
     for usr in usuarios:
         if usr["id"] == usuario.id: 
             raise HTTPException(
@@ -210,6 +212,27 @@ async def eliminar_usuario(
             return {
                 "Mensaje": f"Se ha eliminado el turno por{usuarioAuth}",
                 "Usuario": usr,
+                "Status": "200"
+            }
+
+    raise HTTPException(
+        status_code=400,
+        detail="El turno no ha sido encontrado"
+    )
+    
+@app.post("/v1/usuarios/estatus_turno", tags=["CRUD HTTP"])
+async def estatus_turno(
+    estatus: str = Depends(verificar_token) 
+    usuarioAuth: str = Depends(verificar_token)
+):
+
+    for usr in usuarios:
+        if usr["id"] == id:
+            usuarios.remove(usr)
+
+            return {
+                "Mensaje": f"Se ha eliminado el turno por{usuarioAuth}",
+                "Cliente": usr,
                 "Status": "200"
             }
 
