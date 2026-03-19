@@ -24,4 +24,10 @@ app.include_router(varios.routerV)
     #SI SE BORRA EL CONTENEDOR EN DOCKER
     #docker compose up --build
     
+    #BAJAR EL DOCKER-COMPOSE
+    # docker compose down -v
+    
+    #SUBIR EL DOCKER-COMPOSE
+    #docker compose up --build
+    
     
