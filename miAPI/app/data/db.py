@@ -20,3 +20,30 @@ Sessionlocal = sessionmaker(
     autoflush = False,
     bind = engine        
 )
+
+#4. Base declarativa para Modelo
+
+Base = declarative_base()
+
+
+#5. Función que trabaja sesiones con las peticiones
+def get_db():
+    db = Sessionlocal()
+    
+    try:
+        yield db
+    finally:
+        db.close()
+
+
+
+        
+        
+        
+        
+        
+
+        
+        
+        
+        

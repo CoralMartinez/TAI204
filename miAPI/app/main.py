@@ -2,6 +2,11 @@
 
 from fastapi import FastAPI, APIRouter 
 from app.routers import usuarios, varios
+from app.data.db import engine 
+from app.data import usuario
+from app.data.usuario import Usuario
+
+usuario.Base.metadata.create_all(bind=engine)
 
 app =  FastAPI(
     title = "Mi primer API" ,
@@ -24,7 +29,7 @@ app.include_router(varios.routerV)
     #SI SE BORRA EL CONTENEDOR EN DOCKER
     #docker compose up --build
     
-    #BAJAR EL DOCKER-COMPOSE
+    #BAJAR O BORRAR EL DOCKER-COMPOSE
     # docker compose down -v
     
     #SUBIR EL DOCKER-COMPOSE
