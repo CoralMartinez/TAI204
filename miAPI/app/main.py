@@ -35,4 +35,5 @@ app.include_router(varios.routerV)
     #SUBIR EL DOCKER-COMPOSE
     #docker compose up --build
     
-    
+    #cd miAPI
+    #uvicorn app.main:app --reload
